@@ -1,4 +1,4 @@
-program loja.linha.comando;
+program loja2.linha.comando;
 
 {.$APPTYPE CONSOLE}
 
