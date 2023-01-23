@@ -8,7 +8,8 @@ uses
    UJconzatti.Loja.CasoUso.Pedido.Executador.Acao,
    UJconzatti.Loja.CasoUso.Pedido.Gerador,
    UJconzatti.Loja.Entidade.Pedido,
-   UJconzatti.Loja.Entidade.Orcamento;
+   UJconzatti.Loja.Entidade.Orcamento,
+   UJconzatti.Loja.Entidade.Orcamento.Item;
 
 type
    TCasoUsoPedidoManipuladorGeracao = class
@@ -47,10 +48,20 @@ procedure TCasoUsoPedidoManipuladorGeracao.Gerar(
   aPedidoGerador: TCasoUsoPedidoGerador);
 var aOrcamento : TEntidadeOrcamento;
     aPedido : TEntidadePedido;
-  aAcao: TCasoUsoPedidoExecutadorAcao;
+    aAcao: TCasoUsoPedidoExecutadorAcao;
+    I : Integer;
+    aValorItem : Currency;
 begin
-   aOrcamento := TEntidadeOrcamento.Create(aPedidoGerador.ValorOrcamento, aPedidoGerador.QuantidadeItemOrcamento);
+   aOrcamento := TEntidadeOrcamento.Create;
    try
+      aValorItem := 0;
+      if aPedidoGerador.QuantidadeItemOrcamento > 0 then
+         aValorItem := aPedidoGerador.ValorOrcamento /
+                       aPedidoGerador.QuantidadeItemOrcamento;
+
+      for I := 1 to aPedidoGerador.QuantidadeItemOrcamento do
+         aOrcamento.AdicionarItem(TEntidadeOrcamentoItem.Create(aValorItem));
+
       aPedido := TEntidadePedido.Create(aPedidoGerador.Cliente, Now, aOrcamento);
       try
          for aAcao in FListaAcao do

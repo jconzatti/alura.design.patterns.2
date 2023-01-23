@@ -28,46 +28,83 @@ uses
   UJconzatti.Loja.CasoUso.Pedido.Manipulador.Geracao in '..\casouso\pedido\UJconzatti.Loja.CasoUso.Pedido.Manipulador.Geracao.pas',
   UJconzatti.Loja.CasoUso.Pedido.Executador.Acao in '..\casouso\pedido\UJconzatti.Loja.CasoUso.Pedido.Executador.Acao.pas',
   UJconzatti.Loja.CasoUso.Pedido.Executador.Acao.Repositorio.Salvar in '..\casouso\pedido\UJconzatti.Loja.CasoUso.Pedido.Executador.Acao.Repositorio.Salvar.pas',
-  UJconzatti.Loja.CasoUso.Pedido.Executador.Acao.Email.Enviar in '..\casouso\pedido\UJconzatti.Loja.CasoUso.Pedido.Executador.Acao.Email.Enviar.pas';
+  UJconzatti.Loja.CasoUso.Pedido.Executador.Acao.Email.Enviar in '..\casouso\pedido\UJconzatti.Loja.CasoUso.Pedido.Executador.Acao.Email.Enviar.pas',
+  UJconzatti.Loja.CasoUso.HTTP.Adaptador in '..\casouso\http\UJconzatti.Loja.CasoUso.HTTP.Adaptador.pas',
+  UJconzatti.Loja.CasoUso.Orcamento.Registrador in '..\casouso\orcamento\UJconzatti.Loja.CasoUso.Orcamento.Registrador.pas',
+  UJconzatti.Loja.CasoUso.HTTP.RESTJSON in '..\casouso\http\UJconzatti.Loja.CasoUso.HTTP.RESTJSON.pas',
+  UJconzatti.Loja.Entidade.Orcamento.Item in '..\entidade\orcamento\UJconzatti.Loja.Entidade.Orcamento.Item.pas',
+  UJconzatti.Loja.Entidade.Orcavel in '..\entidade\orcamento\UJconzatti.Loja.Entidade.Orcavel.pas';
 
-var aOrcamento : TEntidadeOrcamento;
-    aGeradorPedido : TCasoUsoPedidoGerador;
-    aRepositorioPedido : TRepositorioPedido;
-    aManipuladorGeracaoPedido : TCasoUsoPedidoManipuladorGeracao;
-    aOrcamentoImposto : TCasoUsoOrcamentoImposto;
+var aOrcamento, aOrcamentoAntigo, aOrcamentoNovo : TEntidadeOrcamento;
+    aOrcamentoRegistrador : TCasoUsoOrcamentoRegistrador;
+    aHTTPRESTJSON : TCasoUsoHTTPRESTJSON;
     aOrcamentoCalculadorImposto : TCasoUsoOrcamentoCalculadorImposto;
-    aOrcamentoCalculadorDesconto : TCasoUsoOrcamentoCalculadorDesconto;
+    aOrcamentoImpostoICMSComISS, aOrcamentoImpostoISS : TCasoUsoOrcamentoImposto;
     aValor : Currency;
-    aMensagem : String;
-    aCliente : String;
-    aQtItem : Cardinal;
+    aMensagem: String;
 begin
    try
-      //Design Pattern Strategy: Este padrão pode ser utilizado quando há diversos possíveis algoritmos para uma ação
-      //(como calcular imposto, por exemplo). Nele, nós separamos cada um dos possíveis algoritmos em classes separadas.
-      //Neste projeto, o Strategy foi usado para separar em classes individuais as regras de negocio de calculo de imposto ICMS e ISS
-      Writeln('Calculadora de Impostos do Orçamento');
+      //Design Pattern Adapter.
+      //Neste projeto, o Adapter foi usado para adaptar a implementação HTTP REST JSON
+      //atraves de um Adaptador abstrato para HTTP (TCasoUsoHTTPAdaptador)
+      aOrcamento := TEntidadeOrcamento.Create;
+      try
+         aOrcamento.AdicionarItem(TEntidadeOrcamentoItem.Create(50));
+         aOrcamento.AdicionarItem(TEntidadeOrcamentoItem.Create(50));
+         aOrcamento.AdicionarItem(TEntidadeOrcamentoItem.Create(25));
+         aOrcamento.AdicionarItem(TEntidadeOrcamentoItem.Create(25));
+         aOrcamento.AdicionarItem(TEntidadeOrcamentoItem.Create(2.5));
+         aHTTPRESTJSON := TCasoUsoHTTPRESTJSON.Create;
+         try
+            aOrcamentoRegistrador := TCasoUsoOrcamentoRegistrador.Create(aHTTPRESTJSON);
+            try
+               aOrcamentoRegistrador.Registrar(aOrcamento);
+            finally
+               aOrcamentoRegistrador.Destroy;
+            end;
+         finally
+            aHTTPRESTJSON.Destroy;
+         end;
+      finally
+         aOrcamento.Destroy;
+      end;
+
+      //Design Pattern Decorator.
+      //Neste projeto, o Decorator foi usado para decorar a classe imposto
+      //para ser possível somar vários impostos de uma única vez, isto é,
+      //agora os impostos podem ser combinados. Caso surja um novo imposto o
+      //mesmo pode ser combinado sem alterar a classe Imposto.
+
+      //O problema que o padrão Decorator nos ajudou a resolver foi
+      //flexibilizar, de maneira dinâmica, o cálculo de diferentes
+      //impostos de um orçamento.
+
+      //O padrão Decorator permite adicionar novos comportamentos a um objeto,
+      //tornando o código bastante flexível e dinâmico.
+      Writeln;
+      Writeln('Calculadora de Impostos do Orçamento (com Decorator)');
       aOrcamentoCalculadorImposto := TCasoUsoOrcamentoCalculadorImposto.Create;
       try
-         aOrcamento := TEntidadeOrcamento.Create(1000, 5);
+         aOrcamento := TEntidadeOrcamento.Create;
          try
+            aOrcamento.AdicionarItem(TEntidadeOrcamentoItem.Create(100));
+            aOrcamento.AdicionarItem(TEntidadeOrcamentoItem.Create(200));
+            aOrcamento.AdicionarItem(TEntidadeOrcamentoItem.Create(300));
+            aOrcamento.AdicionarItem(TEntidadeOrcamentoItem.Create(150));
+            aOrcamento.AdicionarItem(TEntidadeOrcamentoItem.Create(250));
             Writeln('Orçamento: ' + aOrcamento.ObterInformacao);
-            aOrcamentoImposto := TCasoUsoOrcamentoImpostoICMS.Create;
+            aOrcamentoImpostoISS := TCasoUsoOrcamentoImpostoISS.Create;
             try
-               aValor    := aOrcamentoCalculadorImposto.Calcular(aOrcamento, aOrcamentoImposto);
-               aMensagem := Format('ICMS: R$ %s', [FormatFloat('###,##0.00', aValor)]);
-               Writeln(aMensagem);
+               aOrcamentoImpostoICMSComISS := TCasoUsoOrcamentoImpostoICMS.Create(aOrcamentoImpostoISS);
+               try
+                  aValor    := aOrcamentoCalculadorImposto.Calcular(aOrcamento, aOrcamentoImpostoICMSComISS);
+                  aMensagem := Format('ICMS + ISS: R$ %s', [FormatFloat('###,##0.00', aValor)]);
+                  Writeln(aMensagem);
+               finally
+                  aOrcamentoImpostoICMSComISS.Destroy;
+               end;
             finally
-               aOrcamentoImposto.Destroy;
-            end;
-
-            aOrcamentoImposto := TCasoUsoOrcamentoImpostoISS.Create;
-            try
-               aValor    := aOrcamentoCalculadorImposto.Calcular(aOrcamento, aOrcamentoImposto);
-               aMensagem := Format('ISS: R$ %s', [FormatFloat('###,##0.00', aValor)]);
-               Writeln(aMensagem);
-            finally
-               aOrcamentoImposto.Destroy;
+               aOrcamentoImpostoISS.Destroy
             end;
          finally
             aOrcamento.Destroy;
@@ -76,103 +113,31 @@ begin
          aOrcamentoCalculadorImposto.Destroy;
       end;
 
-      //Design Patterns Chain of Responsibility: para criar uma cadeia de algorítmos.
-      //Neste projeto, o Chain of Responsibility foi usado para implementar uma cadeia
-      //de descontos na classe TCasoUsoOrcamentoCalculadorDesconto
-
-      //Design Patterns Template Method: favorece o reaproveitamento de códigos comuns
-      //entre classes, evitando assim duplicações de códigos.
-      //Neste projeto, o Template Method foi usado para implementar na classe mãe de situações de orçamento
-      //algorítmos repetidos das classes filhas
-
-      //Design Patterns State: se o resultado de uma chamada de método depende do estado,
-      //podemos delegar esta ação para uma classe específica do estado atual.
-      //Neste projeto, o State foi usado para implementar as mudanças de situação do
-      //orçamento definindo uma aplicação de desconto extra diferente dependendo da situação atual
+      //Design Pattern Composite.
+      //Neste projeto, o Composite foi usado para permitir adicionar orçamentos
+      //atraves do método para adicionar itens na entidade Orçamento.
+      //Isto é, o Orçamento é uma composição de tudo o que for Orçavel,
+      //tanto itens como o próprio orçamento.
       Writeln;
-      Writeln('Calculadora de Descontos do Orçamento');
-      aOrcamentoCalculadorDesconto := TCasoUsoOrcamentoCalculadorDesconto.Create;
+      Writeln('Composição de orçamentos');
+      aOrcamentoAntigo := TEntidadeOrcamento.Create;
+      aOrcamentoAntigo.AdicionarItem(TEntidadeOrcamentoItem.Create(10));
+      aOrcamentoAntigo.AdicionarItem(TEntidadeOrcamentoItem.Create(90));
+      aOrcamentoAntigo.AdicionarItem(TEntidadeOrcamentoItem.Create(100));
+      aOrcamentoAntigo.Reprovar;
+      Writeln('Orçamento antigo: ' + aOrcamentoAntigo.ObterInformacao);
+
+      aOrcamentoNovo := TEntidadeOrcamento.Create;
       try
-         aOrcamento := TEntidadeOrcamento.Create(100, 8);
-         try
-            aOrcamento.Reprovar;
-            aOrcamento.Finalizar;
-            aOrcamento.AplicarDescontoExtra;
-            Writeln('Orçamento: ' + aOrcamento.ObterInformacao);
-            aValor    := aOrcamentoCalculadorDesconto.Calcular(aOrcamento);
-            aMensagem := Format('Desconto: R$ %s', [FormatFloat('###,##0.00', aValor)]);
-            Writeln(aMensagem);
-         finally
-            aOrcamento.Destroy;
-         end;
-
-         aOrcamento := TEntidadeOrcamento.Create(600, 2);
-         try
-            aOrcamento.Aprovar;
-            aOrcamento.AplicarDescontoExtra;
-            Writeln('Orçamento: ' + aOrcamento.ObterInformacao);
-            aValor    := aOrcamentoCalculadorDesconto.Calcular(aOrcamento);
-            aMensagem := Format('Desconto: R$ %s', [FormatFloat('###,##0.00', aValor)]);
-            Writeln(aMensagem);
-         finally
-            aOrcamento.Destroy;
-         end;
-
-         aOrcamento := TEntidadeOrcamento.Create(600, 8);
-         try
-            aOrcamento.Reprovar;
-            aOrcamento.AplicarDescontoExtra;
-            Writeln('Orçamento: ' + aOrcamento.ObterInformacao);
-            aValor    := aOrcamentoCalculadorDesconto.Calcular(aOrcamento);
-            aMensagem := Format('Desconto: R$ %s', [FormatFloat('###,##0.00', aValor)]);
-            Writeln(aMensagem);
-         finally
-            aOrcamento.Destroy;
-         end;
-
-         aOrcamento := TEntidadeOrcamento.Create(100, 2);
-         try
-            aOrcamento.AplicarDescontoExtra;
-            Writeln('Orçamento: ' + aOrcamento.ObterInformacao);
-            aValor    := aOrcamentoCalculadorDesconto.Calcular(aOrcamento);
-            aMensagem := Format('Desconto: R$ %s', [FormatFloat('###,##0.00', aValor)]);
-            Writeln(aMensagem);
-         finally
-            aOrcamento.Destroy;
-         end;
+         aOrcamentoNovo.AdicionarItem(TEntidadeOrcamentoItem.Create(100));
+         aOrcamentoNovo.AdicionarItem(TEntidadeOrcamentoItem.Create(200));
+         aOrcamentoNovo.AdicionarItem(TEntidadeOrcamentoItem.Create(100));
+         aOrcamentoNovo.AdicionarItem(TEntidadeOrcamentoItem.Create(25));
+         aOrcamentoNovo.AdicionarItem(TEntidadeOrcamentoItem.Create(75));
+         aOrcamentoNovo.AdicionarItem(aOrcamentoAntigo);
+         Writeln('Orçamento novo: ' + aOrcamentoNovo.ObterInformacao);
       finally
-         aOrcamentoCalculadorDesconto.Destroy;
-      end;
-
-      //Design Patterns Command Handler.
-      //Neste projeto, o Command Handler foi usado para isolar a logica de
-      //geração de pedidos atraves de um manipulador (handler) da geração de Pedidos
-      Writeln;
-      Writeln('Pedidos');
-      Write('Nome do Cliente: ');
-      Readln(aCliente);
-      Write('Valor do Orçamento: ');
-      Readln(aValor);
-      Write('Quantidade de Itens do Orçamento: ');
-      Readln(aQtItem);
-      Writeln;
-      aManipuladorGeracaoPedido := TCasoUsoPedidoManipuladorGeracao.Create;
-      try
-         aRepositorioPedido := TRepositorioPedido.Create;
-         try
-            aManipuladorGeracaoPedido.AdicionarAcao(TCasoUsoPedidoExecutadorAcaoRepositorioSalvar.Create(aRepositorioPedido));
-            aManipuladorGeracaoPedido.AdicionarAcao(TCasoUsoPedidoExecutadorAcaoEmailEnviar.Create);
-            aGeradorPedido := TCasoUsoPedidoGerador.Create(aCliente, aValor, aQtItem);
-            try
-               aManipuladorGeracaoPedido.Gerar(aGeradorPedido);
-            finally
-               aGeradorPedido.Destroy;
-            end;
-         finally
-            aRepositorioPedido.Destroy;
-         end;
-      finally
-         aManipuladorGeracaoPedido.Destroy;
+         aOrcamentoNovo.Destroy;
       end;
    except
       on E: Exception do

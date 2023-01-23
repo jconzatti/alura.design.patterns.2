@@ -22,7 +22,7 @@ implementation
 
 function TEntidadeOrcamentoSituacaoEmAnalise.CalcularValorDescontoExtra: Currency;
 begin
-   Result := Orcamento.Valor * 0.05
+   Result := Orcamento.ObterValor * 0.05
 end;
 
 procedure TEntidadeOrcamentoSituacaoEmAnalise.Aprovar;

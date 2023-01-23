@@ -4,17 +4,20 @@ interface
 
 uses
    System.SysUtils,
-   UJconzatti.Loja.Entidade.Orcamento.Situacao;
+   System.Generics.Collections,
+   UJconzatti.Loja.Entidade.Orcamento.Situacao,
+   UJconzatti.Loja.Entidade.Orcamento.Item,
+   UJconzatti.Loja.Entidade.Orcavel;
 
 type
-   TEntidadeOrcamento = class
+   TEntidadeOrcamento = class(TEntidadeOrcavel)
    private
       FValor: Currency;
-      FQuantidadeItem: Cardinal;
       FSituacao : TEntidadeOrcamentoSituacao;
+      FListaItem : TObjectList<TEntidadeOrcavel>;
       procedure DestruirSituacaoSeNecessario;
    public
-      constructor Create(aValor : Double; aQuantidadeItem : Cardinal);
+      constructor Create;
       destructor Destroy; override;
       function ObterInformacao: String;
       procedure AplicarDescontoExtra;
@@ -22,8 +25,9 @@ type
       procedure Aprovar;
       procedure Reprovar;
       procedure Finalizar;
-      property Valor: Currency read FValor;
-      property QuantidadeItem: Cardinal read FQuantidadeItem;
+      function ObterQuantidadeItem: Integer;
+      procedure AdicionarItem(aItem : TEntidadeOrcavel);
+      function ObterValor: Currency; override;
    end;
 
 implementation
@@ -33,22 +37,42 @@ uses
 
 { TEntidadeOrcamento }
 
-constructor TEntidadeOrcamento.Create(aValor : Double; aQuantidadeItem : Cardinal);
+constructor TEntidadeOrcamento.Create;
 begin
-   FValor := aValor;
-   FQuantidadeItem := aQuantidadeItem;
+   FValor := 0;
+   FListaItem := TObjectList<TEntidadeOrcavel>.Create;
    FSituacao := TEntidadeOrcamentoSituacaoEmAnalise.Create(Self);
 end;
 
 destructor TEntidadeOrcamento.Destroy;
 begin
    DestruirSituacaoSeNecessario;
+   FListaItem.Destroy;
    inherited;
 end;
 
 function TEntidadeOrcamento.ObterInformacao: String;
 begin
-   Result := Format('%d itens com valor total de R$ %s [%s]', [FQuantidadeItem, FormatFloat('###,###,###,##0.00', FValor), FSituacao.ObterDescricao])
+   Result := Format('%d itens com valor total de R$ %s [%s]',
+                    [ObterQuantidadeItem,
+                     FormatFloat('###,###,###,##0.00', FValor),
+                     FSituacao.ObterDescricao])
+end;
+
+procedure TEntidadeOrcamento.AdicionarItem(aItem : TEntidadeOrcavel);
+begin
+   FValor := FValor + aItem.ObterValor;
+   FListaItem.Add(aItem);
+end;
+
+function TEntidadeOrcamento.ObterQuantidadeItem: Integer;
+begin
+   Result := FListaItem.Count;
+end;
+
+function TEntidadeOrcamento.ObterValor: Currency;
+begin
+   Result := FValor;
 end;
 
 procedure TEntidadeOrcamento.AplicarDescontoExtra;

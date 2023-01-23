@@ -8,17 +8,17 @@ uses
 
 type
    TCasoUsoOrcamentoImpostoICMS = class(TCasoUsoOrcamentoImposto)
-   public
-      function Calcular(aOrcamento : TEntidadeOrcamento): Currency; override;
+   protected
+      function RealizarCalculoImposto(aOrcamento : TEntidadeOrcamento): Currency; override;
    end;
 
 implementation
 
 { TCasoUsoImpostoOrcamentoICMS }
 
-function TCasoUsoOrcamentoImpostoICMS.Calcular(aOrcamento: TEntidadeOrcamento): Currency;
+function TCasoUsoOrcamentoImpostoICMS.RealizarCalculoImposto(aOrcamento: TEntidadeOrcamento): Currency;
 begin
-   Result := aOrcamento.Valor * 0.17;
+   Result := aOrcamento.ObterValor * 0.17;
 end;
 
 end.

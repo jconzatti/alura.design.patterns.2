@@ -20,7 +20,7 @@ implementation
 
 function TEntidadeOrcamentoSituacaoAprovado.CalcularValorDescontoExtra: Currency;
 begin
-   Result := Orcamento.Valor * 0.02
+   Result := Orcamento.ObterValor * 0.02
 end;
 
 

@@ -145,6 +145,11 @@
         <DCCReference Include="..\casouso\pedido\UJconzatti.Loja.CasoUso.Pedido.Executador.Acao.pas"/>
         <DCCReference Include="..\casouso\pedido\UJconzatti.Loja.CasoUso.Pedido.Executador.Acao.Repositorio.Salvar.pas"/>
         <DCCReference Include="..\casouso\pedido\UJconzatti.Loja.CasoUso.Pedido.Executador.Acao.Email.Enviar.pas"/>
+        <DCCReference Include="..\casouso\http\UJconzatti.Loja.CasoUso.HTTP.Adaptador.pas"/>
+        <DCCReference Include="..\casouso\orcamento\UJconzatti.Loja.CasoUso.Orcamento.Registrador.pas"/>
+        <DCCReference Include="..\casouso\http\UJconzatti.Loja.CasoUso.HTTP.RESTJSON.pas"/>
+        <DCCReference Include="..\entidade\orcamento\UJconzatti.Loja.Entidade.Orcamento.Item.pas"/>
+        <DCCReference Include="..\entidade\orcamento\UJconzatti.Loja.Entidade.Orcavel.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

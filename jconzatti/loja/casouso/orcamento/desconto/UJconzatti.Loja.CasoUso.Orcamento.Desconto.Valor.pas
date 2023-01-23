@@ -19,12 +19,12 @@ implementation
 
 function TCasoUsoOrcamentoDescontoValor.EfeturarCalculoDesconto(aOrcamento: TEntidadeOrcamento): Currency;
 begin
-   Result := aOrcamento.Valor * 0.05;
+   Result := aOrcamento.ObterValor * 0.05;
 end;
 
 function TCasoUsoOrcamentoDescontoValor.DeveAplicarDesconto(aOrcamento: TEntidadeOrcamento): Boolean;
 begin
-   Result := aOrcamento.Valor > 500;
+   Result := aOrcamento.ObterValor > 500;
 end;
 
 end.
