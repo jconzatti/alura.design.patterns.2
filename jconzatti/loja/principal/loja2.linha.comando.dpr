@@ -33,7 +33,8 @@ uses
   UJconzatti.Loja.CasoUso.Orcamento.Registrador in '..\casouso\orcamento\UJconzatti.Loja.CasoUso.Orcamento.Registrador.pas',
   UJconzatti.Loja.CasoUso.HTTP.RESTJSON in '..\casouso\http\UJconzatti.Loja.CasoUso.HTTP.RESTJSON.pas',
   UJconzatti.Loja.Entidade.Orcamento.Item in '..\entidade\orcamento\UJconzatti.Loja.Entidade.Orcamento.Item.pas',
-  UJconzatti.Loja.Entidade.Orcavel in '..\entidade\orcamento\UJconzatti.Loja.Entidade.Orcavel.pas';
+  UJconzatti.Loja.Entidade.Orcavel in '..\entidade\orcamento\UJconzatti.Loja.Entidade.Orcavel.pas',
+  UJconzatti.Loja.CasoUso.Pedido.Executador.Acao.Log in '..\casouso\pedido\UJconzatti.Loja.CasoUso.Pedido.Executador.Acao.Log.pas';
 
 var aOrcamento, aOrcamentoAntigo, aOrcamentoNovo : TEntidadeOrcamento;
     aOrcamentoRegistrador : TCasoUsoOrcamentoRegistrador;
@@ -41,7 +42,11 @@ var aOrcamento, aOrcamentoAntigo, aOrcamentoNovo : TEntidadeOrcamento;
     aOrcamentoCalculadorImposto : TCasoUsoOrcamentoCalculadorImposto;
     aOrcamentoImpostoICMSComISS, aOrcamentoImpostoISS : TCasoUsoOrcamentoImposto;
     aValor : Currency;
-    aMensagem: String;
+    aMensagem, aCliente: String;
+    aQtItem: Integer;
+    aManipuladorGeracaoPedido : TCasoUsoPedidoManipuladorGeracao;
+    aRepositorioPedido : TRepositorioPedido;
+    aGeradorPedido : TCasoUsoPedidoGerador;
 begin
    try
       //Design Pattern Adapter.
@@ -138,6 +143,40 @@ begin
          Writeln('Orçamento novo: ' + aOrcamentoNovo.ObterInformacao);
       finally
          aOrcamentoNovo.Destroy;
+      end;
+
+
+      //Design Patterns Facade.
+      //Neste projeto, o Facade foi usado na geração de pedidos atraves do
+      //manipulador que fica encarregado de criar uma fachada que esconde
+      //a complexidade da lógica de geração de pedido
+      Writeln;
+      Writeln('Pedidos');
+      Write('Nome do Cliente: ');
+      Readln(aCliente);
+      Write('Valor do Orçamento: ');
+      Readln(aValor);
+      Write('Quantidade de Itens do Orçamento: ');
+      Readln(aQtItem);
+      Writeln;
+      aManipuladorGeracaoPedido := TCasoUsoPedidoManipuladorGeracao.Create;
+      try
+         aRepositorioPedido := TRepositorioPedido.Create;
+         try
+            aManipuladorGeracaoPedido.AdicionarAcao(TCasoUsoPedidoExecutadorAcaoRepositorioSalvar.Create(aRepositorioPedido));
+            aManipuladorGeracaoPedido.AdicionarAcao(TCasoUsoPedidoExecutadorAcaoEmailEnviar.Create);
+            aManipuladorGeracaoPedido.AdicionarAcao(TCasoUsoPedidoExecutadorAcaoLog.Create);
+            aGeradorPedido := TCasoUsoPedidoGerador.Create(aCliente, aValor, aQtItem);
+            try
+               aManipuladorGeracaoPedido.Gerar(aGeradorPedido); //Facade aqui
+            finally
+               aGeradorPedido.Destroy;
+            end;
+         finally
+            aRepositorioPedido.Destroy;
+         end;
+      finally
+         aManipuladorGeracaoPedido.Destroy;
       end;
    except
       on E: Exception do
