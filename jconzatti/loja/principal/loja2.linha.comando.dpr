@@ -88,6 +88,7 @@ begin
 
       //O padrão Decorator permite adicionar novos comportamentos a um objeto,
       //tornando o código bastante flexível e dinâmico.
+
       Writeln;
       Writeln('Calculadora de Impostos do Orçamento (com Decorator)');
       aOrcamentoCalculadorImposto := TCasoUsoOrcamentoCalculadorImposto.Create;
