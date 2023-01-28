@@ -34,9 +34,11 @@ uses
   UJconzatti.Loja.CasoUso.HTTP.RESTJSON in '..\casouso\http\UJconzatti.Loja.CasoUso.HTTP.RESTJSON.pas',
   UJconzatti.Loja.Entidade.Orcamento.Item in '..\entidade\orcamento\UJconzatti.Loja.Entidade.Orcamento.Item.pas',
   UJconzatti.Loja.Entidade.Orcavel in '..\entidade\orcamento\UJconzatti.Loja.Entidade.Orcavel.pas',
-  UJconzatti.Loja.CasoUso.Pedido.Executador.Acao.Log in '..\casouso\pedido\UJconzatti.Loja.CasoUso.Pedido.Executador.Acao.Log.pas';
+  UJconzatti.Loja.CasoUso.Pedido.Executador.Acao.Log in '..\casouso\pedido\UJconzatti.Loja.CasoUso.Pedido.Executador.Acao.Log.pas',
+  UJconzatti.Loja.Entidade.Orcamento.Proxy in '..\entidade\orcamento\UJconzatti.Loja.Entidade.Orcamento.Proxy.pas';
 
 var aOrcamento, aOrcamentoAntigo, aOrcamentoNovo : TEntidadeOrcamento;
+    aOrcamentoProxy : TEntidadeOrcamentoProxy;
     aOrcamentoRegistrador : TCasoUsoOrcamentoRegistrador;
     aHTTPRESTJSON : TCasoUsoHTTPRESTJSON;
     aOrcamentoCalculadorImposto : TCasoUsoOrcamentoCalculadorImposto;
@@ -177,6 +179,39 @@ begin
          end;
       finally
          aManipuladorGeracaoPedido.Destroy;
+      end;
+
+      //Design Pattern Proxy.
+      //Neste projeto, o Proxy foi usado para criar um cache para obter valor
+      //do Orçamento. Simulamos uma demora para obter valor do orçamento de 3
+      //segundo. No mundo real isso poderia acontecer se a informação fosse
+      //obtida de uma API externa. Abaixo, usamos o método obter informação
+      //através o proxy de orçamentos, assim o valor será chamado apenas
+      //na primeira vez, depois irá devolver o que está na memória.
+      //Proxy pode ser usado sempre que pretende-se interceptar qualquer
+      //chamada de método de uma classe.
+      Writeln;
+      Writeln('Proxy para obter o valor do orçamentos');
+      aOrcamento := TEntidadeOrcamento.Create;
+      try
+         aOrcamento.AdicionarItem(TEntidadeOrcamentoItem.Create(100));
+         aOrcamento.AdicionarItem(TEntidadeOrcamentoItem.Create(200));
+         aOrcamento.AdicionarItem(TEntidadeOrcamentoItem.Create(100));
+         aOrcamento.AdicionarItem(TEntidadeOrcamentoItem.Create(25));
+         aOrcamento.AdicionarItem(TEntidadeOrcamentoItem.Create(75));
+         aOrcamentoProxy := TEntidadeOrcamentoProxy.Create(aOrcamento);
+         try
+            Writeln('Orçamento: ', aOrcamento.ObterInformacao);
+            Writeln('1. Valor do Orçamento: R$ ', FormatFloat('###,###,###,##0.00', aOrcamentoProxy.ObterValor));
+            Writeln('2. Valor do Orçamento: R$ ', FormatFloat('###,###,###,##0.00', aOrcamentoProxy.ObterValor));
+            Writeln('3. Valor do Orçamento: R$ ', FormatFloat('###,###,###,##0.00', aOrcamentoProxy.ObterValor));
+            Writeln('4. Valor do Orçamento: R$ ', FormatFloat('###,###,###,##0.00', aOrcamentoProxy.ObterValor));
+            Writeln('5. Valor do Orçamento: R$ ', FormatFloat('###,###,###,##0.00', aOrcamentoProxy.ObterValor));
+         finally
+            aOrcamentoProxy.Destroy;
+         end;
+      finally
+         aOrcamento.Destroy;
       end;
    except
       on E: Exception do

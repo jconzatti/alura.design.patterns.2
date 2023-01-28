@@ -72,6 +72,7 @@ end;
 
 function TEntidadeOrcamento.ObterValor: Currency;
 begin
+   Sleep(3000); //simula uma demora
    Result := FValor;
 end;
 
